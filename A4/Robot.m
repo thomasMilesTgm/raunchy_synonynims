@@ -30,20 +30,51 @@ classdef Robot
         dt_pid=0.001;       % pid sampling rate
     
         pid;
-      
         
-        K_p1 = 0;    % proportional gain - joint 1
-        K_i1 = 0;    % integral gain - joint 1
-        K_d1 = 0;    % differential gain - joint 1
+        
+        K_p1 = 1;    % proportional gain - joint 1
+        K_i1 = 400;    % integral gain - joint 1
+        K_d1 = 0.6;    % differential gain - joint 1
         
         %Tu=0.02sec
         
-        K_p2 = 1e+10;    % proportional gain - joint 2
-        K_i2 = 100000;    % integral gain - joint 2
-        K_d2 = 0;   % differential gain - joint 2
-
-
-
+        % Kcr = 45
+        % Pcr = 1.8
+        K_p2 = 1;    % proportional gain - joint 2
+        K_i2 = 1000;    % integral gain - joint 2
+        K_d2 = 0.011;  % differential gain - joi        
+        
+        
+        
+%         Kcr = 300
+        % Pcr = 1.5
+%         K_p1 = 60;    % proportional gain - joint 1
+%         K_i1 = 500*1.5;    % integral gain - joint 1
+%         K_d1 = 0.0153*1.5;    % differential gain - joint 1
+%         
+%         %Tu=0.02sec
+%         
+%         % Kcr = 45
+%         % Pcr = 1.8
+%         K_p2 = 50*0.7;    % proportional gain - joint 2
+%         K_i2 = 500.5*1.8;    % integral gain - joint 2
+%         K_d2 = 0.022*1.5;  % differential gain - joint 2
+        
+% -------------------CUNTED IN FUCKERY--------------------------
+%         % Kcr = 300
+%         % Pcr = 1.5
+%         K_p1 = 0.6*400;    % proportional gain - joint 1
+%         K_i1 = 0.5*1.5;    % integral gain - joint 1
+%         K_d1 = 0.125*1.5;    % differential gain - joint 1
+%         
+%         %Tu=0.02sec
+%         
+%         % Kcr = 45
+%         % Pcr = 1.8
+%         K_p2 = 45*0.7;    % proportional gain - joint 2
+%         K_i2 = 1.8*1.5;    % integral gain - joint 2
+%         K_d2 = 0.12*1.5;  % differential gain - joint 2
+% -------------------CUNTED IN FUCKERY--------------------------
         K_p;
         K_i;
         K_d;
@@ -91,7 +122,7 @@ classdef Robot
             obj.K_d = [obj.K_d1, obj.K_d2];
             
             obj.pid= pid(obj.K_p, obj.K_i,obj.K_d,...
-                            'Ts', 0.01, 'Tf', 0.1, 'IFormula', 'Trapezoidal');
+                            'Ts', 0.001, 'Tf', 0.01, 'IFormula', 'Trapezoidal');
 %             obj.pid = feedback(pidOL, obj.K);
             
                 
@@ -144,8 +175,8 @@ classdef Robot
             e = U - obj.V_last;
             
             
-            t1 = lsim(obj.pid(:,:,1,1), [obj.e_last(1), e(1)], [0,0.01]);
-            t2 = lsim(obj.pid(:,:,1,2), [obj.e_last(2), e(2)], [0,0.01]);
+            t1 = lsim(obj.pid(:,:,1,1), [obj.e_last(1), e(1)], [0,0.001]);
+            t2 = lsim(obj.pid(:,:,1,2), [obj.e_last(2), e(2)], [0,0.001]);
             
             tau = [t1(2), t2(2)];
 % Store error and torque
@@ -233,6 +264,7 @@ classdef Robot
             xlabel('time (s)');
             ylabel('error (deg)');
             legend('e1','e2');
+            grid();
             
         end
         

@@ -27,10 +27,10 @@ L_2 = 0.6; %m
 r_c1 = L_1/2; %m
 r_c2 = L_2/2; %m
 
-I_zz1 = 0.5; %kgm^2
-I_zz2 = 0.3; %kgm^2
-I_xx = 0; %kgm^2
-I_yy = 0; %kgm^2
+I_zz1 = 0.5;    %kgm^2
+I_zz2 = 0.3;    %kgm^2
+I_xx = 0;       %kgm^2
+I_yy = 0;       %kgm^2
 
 mu = 0.1; % Friction coefficient
 
@@ -67,11 +67,8 @@ for time = 0:dt_pid:tf
     if mod(time, dt) == 0
         time;
         [robot,tau] = robot.PID(U,time,dt);
-        
     end
-    
-    
-    
+
     [t,X] = ode45(@(t,y) Task1_dynamics(t,X0, A, B, C, G, tau, mu), [0, dt_pid], X0);
     lX = length(X);
     sim_state = sim_state.updateState(X(lX,:), time+dt_pid);
@@ -79,7 +76,7 @@ for time = 0:dt_pid:tf
 end
 
 
-% sim_state.animate(dt, tf, L_1, L_2,10);
+sim_state.animate(dt, tf, L_1, L_2,10);
 sim_state.plotQ(tf);
 
 sim_state.plotQDot(tf);
@@ -102,6 +99,5 @@ axis([0,5,-30,10])
 % 
 
 robot.plotError()
-grid()
 
 % robot.plotTau(0)
