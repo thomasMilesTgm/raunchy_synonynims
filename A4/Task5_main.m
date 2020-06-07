@@ -4,10 +4,10 @@ clc
 set(groot,'defaulttextInterpreter','latex') % LaTex is the only way
 set(groot,'defaultLegendInterpreter','latex') % LaTex is the only way
 
-Trajectory='B';
+Trajectory='A';
 
 % proportional gains for task space controller
-P1 = 14;
+P1 = 10;
 P2 = 10;
 P = [P1,0; 0,P2];
 
@@ -60,14 +60,11 @@ u_hist = [0,0];
 
 
 %% Trajectory A
-if Trajectory=='A'
+
     X0 = [0.710; 0]; Y0 = [1.080; 0]; % initial state
     Xf = [1.485; 0]; Yf = [0.041; 0]; % final state
-elseif Trajectory=='B'
-    X0 = [0.710; 0]; Y0 = [1.080; 0]; % initial state
-    Xf = [1.36; 0]; Yf = [-0.59; 0]; % final state
-end
 
+sensor_t5(0,X0(1),Y0(1));   % create the obstacle
 
 [Xref, Yref] = trajectoryGen(X0, Y0, Xf, Yf, tf, show_tr);
 
@@ -178,83 +175,6 @@ end
 % sim_state.animate(dt, tf, L_1, L_2,10);
 
 sim_state.plotEE_path(L_1, L_2)
-
-
-r2d=360/(2*pi); % rad 2 deg
-time=0:dt_pid:tf;
-
-
-
-% plot reference joint velocity input vs and actual velocity
-figure()
-hold on
-
-sim_state.plotQDot(tf);
-plot(time,u_hist(:,1));
-plot(time,u_hist(:,2));
-
-robot.plotTau()
-
-legend('$\dot{q}_1$','$\dot{q}_2$','$\dot{q}_{1ref}$','$\dot{q}_{2ref}$','$\tau_1$','$\tau_2$');
-
-
-axis([0,5,-35,30])
-
-% 
-
-figure()
-hold on
-plot(time,e_hist(:,1));
-plot(time,e_hist(:,2));
-robot.plotTau()
-
-legend('$e_x$','$e_y$','$\tau_1$','$\tau_2$');
-
-% plot end effector x and y vs t
-time=0:dt_pid:tf;
-xr=Xref(time);
-yr=Yref(time);
-
-
-figure()
-hold on
-
-
-sim_state.plotEE_t(L_1,L_2, 'x')
-sim_state.plotEE_t(L_1,L_2, 'y')
-plot(time,yr(1,:),'--','LineWidth',2)
-plot(time,xr(1,:),'--','LineWidth',2)
-
-legend('$x_e$','$y_e$','$x_r$','$y_r$', 'FontSize',20)
-grid()
-xlabel('time (sec)', 'FontSize',20)
-ylabel('position (m)', 'FontSize',20)
-
-figure()
-resolution = pi/30;
-robot.plotReachable(resolution)
-sim_state.plotEE_path(L_1, L_2)
-
-
-anim=0;
-if anim
-    close all
-    sim_state.animate(dt, 0.5, L_1, L_2,10*50);
-    grid
-    
-    daspect([1 1 1])
-    xlabel('x', 'FontSize',20)
-    ylabel('y', 'FontSize',20)
-    
-    
-    if Trajectory=='A'
-        axis([0,1.6,-0.4,1.2])
-    else
-        axis([0,1.4,-0.8,1.2])
-    end
-end
-
-
 
 
 

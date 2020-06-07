@@ -5,7 +5,7 @@ clc
 set(groot,'defaulttextInterpreter','latex') % LaTex is the only way
 set(groot,'defaultLegendInterpreter','latex') % LaTex is the only way
 
-anim=1; % do you want to animate
+anim=0; % do you want to animate
 %% Setup Simulation Environment
 
 % initial state

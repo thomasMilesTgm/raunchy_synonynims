@@ -5,7 +5,7 @@ set(groot,'defaulttextInterpreter','latex') % LaTex is the only way
 set(groot,'defaultLegendInterpreter','latex') % LaTex is the only way
 
 Trajectory='B';
-
+anim=0;
 % proportional gains for task space controller
 P1 = 14;
 P2 = 10;
@@ -236,7 +236,7 @@ robot.plotReachable(resolution)
 sim_state.plotEE_path(L_1, L_2)
 
 
-anim=0;
+
 if anim
     close all
     sim_state.animate(dt, 0.5, L_1, L_2,10*50);

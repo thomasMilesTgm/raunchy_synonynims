@@ -1,4 +1,4 @@
-function [X, Y] = trajectoryGen(X0, Y0, Xf, Yf, tf, f)
+function [X, Y] = trajectoryGen(X0, Y0, Xf, Yf, tf, show)
     % TRAJECTORYGEN Generates a cubic reference trajectory from given 
     % initial and final conditions.
     %
@@ -6,7 +6,7 @@ function [X, Y] = trajectoryGen(X0, Y0, Xf, Yf, tf, f)
     % functions of polynomials X(t) and Y(t) which satisfy initial and final
     % position and velocity conditions X0 Xf, and Y0 Yf (these are vectors 
     % [X; dX]). 
-    % The trajectory will be linear/affine in the x,y plane.
+    % The trajectory will be linear/affine in the X,Y plane.
 
 
     t=sym('t');
@@ -40,10 +40,10 @@ function [X, Y] = trajectoryGen(X0, Y0, Xf, Yf, tf, f)
     
     X = vpa(subs(X, vars,[A1,B1,C1,D1,A2,B2,C2,D2]));
     Y = vpa(subs(Y, vars,[A1,B1,C1,D1,A2,B2,C2,D2]));
+    X = matlabFunction(X);
+    Y = matlabFunction(Y);
     
-    if f
-        X = matlabFunction(X);
-        Y = matlabFunction(Y);
+    if show
         
         %Plot trajectories
         set(0,'defaulttextInterpreter','latex') % LaTex is the only way

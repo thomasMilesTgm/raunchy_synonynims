@@ -1,22 +1,16 @@
 close all
 clear all
 clc
-set(groot,'defaulttextInterpreter','latex') % LaTex is the only way
-set(groot,'defaultLegendInterpreter','latex') % LaTex is the only way
 
-Trajectory='B';
-
-% proportional gains for task space controller
-P1 = 14;
-P2 = 10;
-P = [P1,0; 0,P2];
+Trajectory='A';
+anim=0;
 
 %% Setup Simulation Environment
 syms t
 up = 0; % manual elbow position
 has_lim=0; 
 
-show_tr=0;
+show_tr=1;
 
 % initial state
 dt = 0.01;
@@ -46,17 +40,12 @@ Q2_min = -90*2*pi/360;
 Q2_max = 90*2*pi/360;
 
 
+
 mu = 0.1; % Friction coefficient
 
 % Generate dynamics
 [A,B,C,G] = formulteDynamics(...
     m_1, m_2, L_1, L_2, r_c1, r_c2, I_zz1, I_zz2, I_xx, I_yy);
-
-
-% error and U histories
-e_hist = [0,0];
-u_hist = [0,0];
-
 
 
 %% Trajectory A
@@ -86,12 +75,9 @@ sim_state = State(Q0, A, B, C, G);
 robot = Robot(Q0, mdl_err, pos_sensor, [Q1_max, Q2_max]);
 
 U =[0,0];
-x_last = X0(1);
-y_last = Y0(1);
-i=1;
-%% Simulation loop
+
+% Simulation loop
 for time = 0:dt_pid:tf
-    
     is_lim=0;
     Q_now = sim_state.Q; 
     A = sim_state.getA;
@@ -99,41 +85,21 @@ for time = 0:dt_pid:tf
     C = sim_state.getC;
     G = sim_state.getG;
     
-    % calculate error in task space to generate reference velocity signal U
-    % for the robot
-    e_x = Xref(time) - x_last;
-    e_y = Yref(time) - y_last;
-    e = [e_x(1); e_y(1)];
+    % calculate current refernce velocity in joint space
+    q1_ref = Q1_ref_fn(time);
+    q2_ref = Q2_ref_fn(time);
     
-    %
-    u_hist(i,:) = U;
-    e_hist(i,:) = e';
 
+    U = [q1_ref(2), q2_ref(2)]; % reference velocity
     
-    
-    
-    
-    % Proportional task space controller using position error
-    q_1 = Q_now(1);
-    q_2 = Q_now(2);
-    
-    J_v2 = [-L_1*sin(q_1) - r_c2*sin(q_1 + q_2), -r_c2*sin(q_1 + q_2);...
-            L_1*cos(q_1) + r_c2*cos(q_1 + q_2), r_c2*cos(q_1 + q_2)];
-    
-    
-     
-    % reference velocity for robot
-    
+    % Give the robot current velocity "measurement"
     robot = robot.sample(Q_now, U, time);
     
+
     % Get new command from robot every dt
     if mod(time, dt) == 0
-        U = (inv(J_v2)*P*e)';
+        
         [robot,tau] = robot.PID(U, time);  
-        [x_last,y_last] = forwardKinematics(q_1,q_2,L_1,L_2);
-        
-        
-        
     end
 
     
@@ -168,7 +134,7 @@ for time = 0:dt_pid:tf
         
     % update state
     sim_state = sim_state.updateState(Qnext, time+dt_pid);
-    i=i+1;
+    
     
 end
 
@@ -177,22 +143,53 @@ end
 
 % sim_state.animate(dt, tf, L_1, L_2,10);
 
-sim_state.plotEE_path(L_1, L_2)
+
 
 
 r2d=360/(2*pi); % rad 2 deg
 time=0:dt_pid:tf;
 
+% plot reference and actual joint angles
+figure()
+hold on
+
+sim_state.plotQ(tf); % actual
+
+i=1;
+q_r=[0,0];
+
+for t=time
+    Q1_t = Q1_ref_fn(t);
+    Q2_t = Q2_ref_fn(t);
+    q_r(i,1) = r2d*Q1_t(1);
+    q_r(i,2) = r2d*Q2_t(1);
+    i=i+1;
+end
+
+plot(time, q_r);
+legend('$q_1$', '$q_2$', '$q_{1r}$', '$q_{2r}$')
 
 
-% plot reference joint velocity input vs and actual velocity
+
+% plot reference trajectory and actual velocity
 figure()
 hold on
 
 sim_state.plotQDot(tf);
-plot(time,u_hist(:,1));
-plot(time,u_hist(:,2));
+r=[0,0];
+i=1;
 
+for t=0:dt_pid:tf
+    Q1_t = Q1_ref_fn(t);
+    Q2_t = Q2_ref_fn(t);
+    r(i,1) = r2d*Q1_t(2);
+    r(i,2) = r2d*Q2_t(2);
+   i=i+1;
+end
+
+
+plot(time,r(:,1),'LineWidth',2,'LineStyle','-.');
+plot(time,r(:,2),'LineWidth',2,'LineStyle','-. ');
 robot.plotTau()
 
 legend('$\dot{q}_1$','$\dot{q}_2$','$\dot{q}_{1ref}$','$\dot{q}_{2ref}$','$\tau_1$','$\tau_2$');
@@ -202,13 +199,15 @@ axis([0,5,-35,30])
 
 % 
 
-figure()
-hold on
-plot(time,e_hist(:,1));
-plot(time,e_hist(:,2));
-robot.plotTau()
+robot.plotError()
 
-legend('$e_x$','$e_y$','$\tau_1$','$\tau_2$');
+
+
+% plot reachable workspace
+resolution = pi/30;
+robot.plotReachable(resolution)
+sim_state.plotEE_path(L_1, L_2)
+
 
 % plot end effector x and y vs t
 time=0:dt_pid:tf;
@@ -230,13 +229,8 @@ grid()
 xlabel('time (sec)', 'FontSize',20)
 ylabel('position (m)', 'FontSize',20)
 
-figure()
-resolution = pi/30;
-robot.plotReachable(resolution)
-sim_state.plotEE_path(L_1, L_2)
 
 
-anim=0;
 if anim
     close all
     sim_state.animate(dt, 0.5, L_1, L_2,10*50);
@@ -253,15 +247,6 @@ if anim
         axis([0,1.4,-0.8,1.2])
     end
 end
-
-
-
-
-
-
-
-
-
 
 
 

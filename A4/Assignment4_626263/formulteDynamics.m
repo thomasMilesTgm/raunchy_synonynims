@@ -1,7 +1,6 @@
-
-
 function [A, B, C, G] = formulteDynamics(...
     m_1, m_2, L_1, L_2, r_c1, r_c2, I_zz1, I_zz2, I_xx, I_yy)
+    syms q_1 q_2
 
     g = -9.81; %m/s^2
 

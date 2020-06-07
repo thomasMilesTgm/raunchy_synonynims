@@ -194,12 +194,7 @@ classdef Robot
             
             
         end
-        
-        
 
-        
-            
-        
         
         function plotError(obj)
             r2d=360/(2*pi);
@@ -208,9 +203,6 @@ classdef Robot
             plot(obj.t_hist, r2d.*obj.e_hist(:,1),':','LineWidth',2);
             plot(obj.t_hist, r2d.*obj.e_hist(:,2),':','LineWidth',2);
 
-           
-           
-            
         end
         
         

@@ -1,6 +1,0 @@
-function [x,y] = forwardKinematics(q1, q2, l1, l2)
-
-    
-
-
-end
